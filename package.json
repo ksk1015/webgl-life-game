@@ -1,5 +1,5 @@
 {
-  "name": "webgl-scaffold",
+  "name": "webgl-life-game",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "typescript": "6.0.2",
+    "vite": "8.3.0"
   }
 }
