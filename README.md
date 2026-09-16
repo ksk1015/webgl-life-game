@@ -17,6 +17,12 @@ npm run dev
 npm run build
 ```
 
+## GitHub Pages で公開
+
+- `main` ブランチへ push されると GitHub Actions が `npm ci` と `npm run build` を実行し、`dist` を GitHub Pages にデプロイします。
+- GitHub の `Settings > Pages` で build and deployment の source を `GitHub Actions` に設定してください。
+- 公開 URL は通常 `https://ksk1015.github.io/webgl-life-game/` です。
+
 ## 使い方
 
 - `Start / Pause`: シミュレーションの再生と停止
