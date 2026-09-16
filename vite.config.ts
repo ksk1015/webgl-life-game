@@ -1,8 +1,11 @@
 import { defineConfig } from 'vite'
 
-const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1]
-const githubPagesBase = repositoryName ? `/${repositoryName}/` : '/'
+const githubPagesBasePath = process.env.GITHUB_PAGES_BASE_PATH
+const normalizedGithubPagesBase =
+  githubPagesBasePath && githubPagesBasePath.length > 0
+    ? `${githubPagesBasePath.replace(/\/$/, '')}/`
+    : '/'
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS === 'true' ? githubPagesBase : '/',
+  base: process.env.GITHUB_ACTIONS === 'true' ? normalizedGithubPagesBase : '/',
 })
