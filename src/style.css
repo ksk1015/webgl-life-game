@@ -1,0 +1,131 @@
+:root {
+  color-scheme: dark;
+  font-family:
+    Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #020617;
+  color: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+button {
+  border: 1px solid #334155;
+  background: rgba(15, 23, 42, 0.92);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: #38bdf8;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(2, 6, 23, 0.92);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.toolbar-group,
+.toolbar-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.toolbar-status {
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+canvas.pan-mode {
+  cursor: grab;
+}
+
+canvas.panning {
+  cursor: grabbing;
+}
+
+.help-panel {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  width: min(24rem, calc(100vw - 2rem));
+  background: rgba(15, 23, 42, 0.84);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  backdrop-filter: blur(10px);
+}
+
+.help-panel h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.help-panel ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    justify-content: flex-start;
+  }
+
+  .help-panel {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+  }
+}
