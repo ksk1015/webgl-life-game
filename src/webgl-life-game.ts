@@ -74,6 +74,31 @@ void main() {
 }
 `
 
+const RESET_FRAGMENT_SHADER = `#version 300 es
+precision highp float;
+precision highp usampler2D;
+
+uniform uint uSeed;
+uniform float uDensity;
+
+out vec4 outColor;
+
+uint hash(uint x) {
+  x ^= x >> 16u;
+  x *= 0x45d9f3bu;
+  x ^= x >> 16u;
+  return x;
+}
+
+void main() {
+  ivec2 cell = ivec2(gl_FragCoord.xy);
+  uint h = hash(hash(uint(cell.x) ^ (uSeed * 1664525u)) ^ (uint(cell.y) * 1013904223u));
+  float value = float(h) / 4294967295.0;
+  float encoded = value < uDensity ? 1.0 : 0.0;
+  outColor = vec4(encoded, 0.0, 0.0, 1.0);
+}
+`
+
 const DRAW_FRAGMENT_SHADER = `#version 300 es
 precision highp float;
 
@@ -129,6 +154,9 @@ class GpuLifeSimulation {
   private readonly stepProgram: WebGLProgram
   private readonly stateLocation: WebGLUniformLocation
   private readonly sizeLocation: WebGLUniformLocation
+  private readonly resetProgram: WebGLProgram
+  private readonly resetSeedLocation: WebGLUniformLocation
+  private readonly resetDensityLocation: WebGLUniformLocation
 
   constructor(
     gl: WebGL2RenderingContext,
@@ -136,6 +164,7 @@ class GpuLifeSimulation {
     height: number,
     vertexShaderSource: string,
     stepFragmentShaderSource: string,
+    resetFragmentShaderSource: string,
   ) {
     this.gl = gl
     this.width = width
@@ -143,9 +172,11 @@ class GpuLifeSimulation {
     this.stepProgram = createProgram(gl, vertexShaderSource, stepFragmentShaderSource)
     this.stateLocation = getUniformLocation(gl, this.stepProgram, 'uState')
     this.sizeLocation = getUniformLocation(gl, this.stepProgram, 'uBoardSize')
+    this.resetProgram = createProgram(gl, vertexShaderSource, resetFragmentShaderSource)
+    this.resetSeedLocation = getUniformLocation(gl, this.resetProgram, 'uSeed')
+    this.resetDensityLocation = getUniformLocation(gl, this.resetProgram, 'uDensity')
     this.textures = [createStateTexture(gl, width, height), createStateTexture(gl, width, height)]
     this.framebuffers = this.textures.map((texture) => createFramebuffer(gl, texture))
-    this.resetRandom(DEFAULT_RANDOM_DENSITY)
   }
 
   get currentTexture(): WebGLTexture {
@@ -172,12 +203,18 @@ class GpuLifeSimulation {
     this.currentIndex = nextIndex
   }
 
-  resetRandom(density: number): void {
-    const data = new Uint8Array(this.width * this.height)
-    for (let index = 0; index < data.length; index += 1) {
-      data[index] = Math.random() < density ? 255 : 0
+  resetRandom(density: number, vao: WebGLVertexArrayObject): void {
+    const seed = (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0
+    this.gl.useProgram(this.resetProgram)
+    this.gl.bindVertexArray(vao)
+    this.gl.viewport(0, 0, this.width, this.height)
+    this.gl.uniform1ui(this.resetSeedLocation, seed)
+    this.gl.uniform1f(this.resetDensityLocation, density)
+    for (const framebuffer of this.framebuffers) {
+      this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer)
+      this.gl.drawArrays(this.gl.TRIANGLES, 0, 3)
     }
-    this.uploadState(data)
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null)
   }
 
   clear(): void {
@@ -292,7 +329,9 @@ export class LifeGameApp {
       this.boardSize,
       FULLSCREEN_VERTEX_SHADER,
       STEP_FRAGMENT_SHADER,
+      RESET_FRAGMENT_SHADER,
     )
+    this.simulation.resetRandom(DEFAULT_RANDOM_DENSITY, this.vao)
     this.drawProgram = createProgram(this.gl, FULLSCREEN_VERTEX_SHADER, DRAW_FRAGMENT_SHADER)
     this.drawStateLocation = getUniformLocation(this.gl, this.drawProgram, 'uState')
     this.drawCanvasLocation = getUniformLocation(this.gl, this.drawProgram, 'uCanvasSize')
@@ -337,7 +376,7 @@ export class LifeGameApp {
     this.ui.resetButton.addEventListener('click', () => {
       this.running = false
       this.generation = 0
-      this.simulation.resetRandom(DEFAULT_RANDOM_DENSITY)
+      this.simulation.resetRandom(DEFAULT_RANDOM_DENSITY, this.vao)
       this.updateUi()
       this.render()
     })
